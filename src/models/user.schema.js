@@ -1,6 +1,5 @@
 import mongoose from "mongoose";
 
-
 const schema = new mongoose.Schema({
     email:{
         type: String,
@@ -24,6 +23,10 @@ const schema = new mongoose.Schema({
         type: Boolean,
         default: true
     },
+    role_id:{
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'Role'
+    }
 }, {
     versionKey: false,
     timestamps:{
@@ -32,7 +35,7 @@ const schema = new mongoose.Schema({
     }
 });
 class User extends mongoose.Document{
-
+    
 }
 schema.loadClass(User);
 export default mongoose.model('User', schema);

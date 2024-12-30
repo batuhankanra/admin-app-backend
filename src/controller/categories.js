@@ -16,6 +16,7 @@ export const cView= async (req, res) => {
 }
 export const cAdd=async (req,res)=>{
     try{
+        console.log(req.user._id)
         const {name}=req.body
         if(!name){
             throw new CustomError(Enum.HTTP_CODES.BAD_REQUEST,"VALIDATION ERROR","Name is required")
@@ -23,7 +24,7 @@ export const cAdd=async (req,res)=>{
         const category=new categoriesSchema({
             name,
             is_active:true,
-            created_by:req.user?._id
+            created_by:req.user._id
         })
         await category.save()
         return res.status(Enum.HTTP_CODES.OK).json(Response.successResponse({success:true}))
@@ -47,9 +48,6 @@ export const cUpdate=async (req,res)=>{
             updates.is_active=is_active
         }
         await categoriesSchema.updateOne({_id:id},updates)
-        if(!catUpdate){
-            throw new CustomError(Enum.HTTP_CODES.NOT_FOUND,"NOT FOUND","Category not found")
-        }
         return res.status(Enum.HTTP_CODES.OK).json(Response.successResponse({success:true}))
     }catch(error){
         let errorRes=Response.errorResponse(error)

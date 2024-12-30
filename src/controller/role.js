@@ -72,7 +72,8 @@ export const rUpdate=async (req,res)=>{
         if(Array.isArray(permissions) || permissions.length>0){
             let per=await rolePrivlegesSchema.find({role_id:role._id}).lean()
             let removedPer=per.filter(p=>!permissions.includes(p.permissions))
-            let invalidPer=permissions.filter(p=>!per.includes(p.permissions))
+            let existingPermissions = per.map(p => p.permissions);
+            let invalidPer=permissions.filter(p=>!existingPermissions.includes(p))
             if(removedPer.length>0){
                 await rolePrivlegesSchema.deleteMany({_id:{$in:removedPer.map(p=>p._id)}})
             }
@@ -86,11 +87,11 @@ export const rUpdate=async (req,res)=>{
                     rolePriv.save()
                 }
             }
-        await roleSchema.updateOne({_id:id},updates)
-
-            return res.status(Enum.HTTP_CODES.OK).json(Response.successResponse({success:true}))
         }
 
+        await roleSchema.updateOne({_id:id},updates)
+
+        return res.status(Enum.HTTP_CODES.OK).json(Response.successResponse({success:true}))
     }catch (err){
 
         let errorRes=Response.errorResponse(err)

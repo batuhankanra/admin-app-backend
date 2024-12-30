@@ -11,7 +11,7 @@ const schema = new mongoose.Schema({
         default: true
     },
     created_by: {
-        type: mongoose.Schema.Types.ObjectId,
+        type: mongoose.SchemaTypes.ObjectId,
         ref: 'User'
     },
 }, {

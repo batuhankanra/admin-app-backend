@@ -5,6 +5,72 @@ import User from "../models/user.schema.js"
 import bcrypt from "bcryptjs";
 import is from "is_js";
 import roleSchema from "../models/role.schema.js";
+import jwt from "jsonwebtoken";
+import config from "../config/index.js";
+
+export const uAuth=async (req,res)=>{
+    try{
+        let {email,password}=req.body
+        if(!email || is.not.email(email)){
+            throw new CustomError(Enum.HTTP_CODES.BAD_REQUEST,"Validation Error","Invalid Email")
+        }
+        if(!password || is.not.string(password) || password.length<Enum.PASS_LENGTH){
+            throw new CustomError(Enum.HTTP_CODES.BAD_REQUEST,"Validation Error","Invalid Password")
+        }
+        let findUser=await User.findOne({email})
+        if(!findUser){
+            throw new CustomError(Enum.HTTP_CODES.NOT_FOUND,"Validation Error","User Not Found")
+        }
+        let validPass=bcrypt.compareSync(password,findUser.password)
+        if(!validPass){
+            throw new CustomError(Enum.HTTP_CODES.UNAUTHORIZED,"Validation Error","Invalid Password")
+        }
+        let token= jwt.sign({id:findUser._id},config.JWT_SECRET,{expiresIn:"1h"})
+        let userData={
+            _id:findUser._id,
+            first_name:findUser.first_name,
+            last_name:findUser.last_name,
+        }
+        return res.status(Enum.HTTP_CODES.OK).json(Response.successResponse({token,userData}))
+    }catch(err){
+        let errorRes=Response.errorResponse(err)
+        return res.status(errorRes.code).json(errorRes)
+    }
+}
+export const uRegister=async (req,res)=>{
+    try{
+        let {email,password}=req.body
+        const usersFind=await User.find()
+        if(usersFind){
+            throw new CustomError(Enum.HTTP_CODES.BAD_REQUEST,"Validation Error","User Already Exists")
+        }
+
+        if(!email || is.not.email(email)){
+            throw new CustomError(Enum.HTTP_CODES.BAD_REQUEST,"Validation Error","Invalid Email")
+        }
+        if(!password || is.not.string(password) || password.length<Enum.PASS_LENGTH){
+            throw new CustomError(Enum.HTTP_CODES.BAD_REQUEST,"Validation Error","Invalid Password")
+        }
+        let passwordHash= bcrypt.hashSync(password,bcrypt.genSaltSync(8),null)
+        let newUser =new User({
+            email,
+            password:passwordHash,
+            is_active:true,
+            role_id:"67726e6da3422fdef024b6da"
+        })
+        await newUser.save()
+        
+
+        return res.status(Enum.HTTP_CODES.CREATED).json(Response.successResponse({success:true}))
+
+
+    }catch(err){
+        let errorRes=Response.errorResponse(err)
+        return res.status(errorRes.code).json(errorRes)
+    }
+
+}
+
 
 export const uView=async (req,res)=>{
     try{

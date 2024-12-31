@@ -3,6 +3,8 @@ import CustomError from "../lib/error.js"
 import Response from "../lib/Response.js"
 import roleSchema from "../models/role.schema.js"
 import rolePrivlegesSchema from "../models/rolePrivleges.schema.js"
+import AuditLogs from "../lib/auditLogs.js";
+
 
 
 export const rView=async (req,res)=>{
@@ -47,6 +49,7 @@ export const rAdd=async (req,res)=>{
             })
             rolePriv.save()
         }
+        AuditLogs.info(req.user._id,"Role","Add",role)
         return res.status(Enum.HTTP_CODES.OK).json(Response.successResponse({success:true}))
 
     }catch (err){
@@ -90,6 +93,7 @@ export const rUpdate=async (req,res)=>{
         }
 
         await roleSchema.updateOne({_id:id},updates)
+        AuditLogs.info(req.user._id,"Role","Update",updates)
 
         return res.status(Enum.HTTP_CODES.OK).json(Response.successResponse({success:true}))
     }catch (err){
@@ -106,6 +110,8 @@ export const rDelete=async (req,res)=>{
         }
         await roleSchema.deleteOne({_id:id})
         await rolePrivlegesSchema.deleteMany({role_id:id})
+        AuditLogs.info(req.user._id,"Role","delete",roleSchema)
+        
         return res.status(Enum.HTTP_CODES.OK).json(Response.successResponse({success:true}))
 
     }catch (err){
